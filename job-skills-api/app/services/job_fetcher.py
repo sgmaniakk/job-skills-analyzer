@@ -65,15 +65,23 @@ class JobFetcher:
 
             soup = BeautifulSoup(response.text, 'html.parser')
 
-            # Extract title
+            # Extract title - try multiple selectors
             title = None
             title_elem = soup.find('h1', class_='app-title')
+            if not title_elem:
+                title_elem = soup.find('h1', class_='section-header')
+            if not title_elem:
+                title_elem = soup.find('h1')
             if title_elem:
                 title = title_elem.get_text(strip=True)
 
-            # Extract description
+            # Extract description - try multiple selectors
             description = ""
-            content_div = soup.find('div', id='content')
+            content_div = soup.find('div', class_='job__description')
+            if not content_div:
+                content_div = soup.find('div', id='content')
+            if not content_div:
+                content_div = soup.find('div', class_='content')
 
             if content_div:
                 # Remove application form sections
