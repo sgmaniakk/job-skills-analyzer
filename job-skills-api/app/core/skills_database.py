@@ -116,6 +116,7 @@ SKILLS_DATABASE = {
     "data_science": [
         "Machine Learning", "ML", "Deep Learning", "Neural Networks",
         "Natural Language Processing", "NLP", "Computer Vision", "CV",
+        "Artificial Intelligence", "AI", "Generative AI", "GenAI",
         "Data Analysis", "Data Visualization", "Statistical Analysis",
         "A/B Testing", "Hypothesis Testing", "Regression", "Classification",
         "Clustering", "Dimensionality Reduction", "Feature Engineering",
@@ -177,7 +178,7 @@ SKILLS_DATABASE = {
         "Unity", "Unreal Engine", "Godot", "CryEngine", "GameMaker",
         "Cocos2d", "Phaser", "Three.js", "WebGL", "OpenGL", "DirectX",
         "Vulkan", "Metal", "Game Design", "3D Modeling", "Animation",
-        "Physics Engine", "AI", "Multiplayer", "Networking",
+        "Physics Engine", "Multiplayer", "Networking",
     ],
 
     "business_intelligence": [
