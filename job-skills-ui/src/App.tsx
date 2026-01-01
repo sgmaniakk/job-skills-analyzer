@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { JobUploader } from './components/upload/JobUploader';
 import { AnalysisResults } from './components/analysis/AnalysisResults';
 import { useAnalysis } from './hooks/useAnalysis';
-import { JobInput } from './types/analysis';
+import type { JobInput } from './types/analysis';
 
 function App() {
   const { analyze, loading, error, result, reset } = useAnalysis();

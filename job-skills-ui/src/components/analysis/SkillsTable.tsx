@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Skill } from '../../types/analysis';
+import type { Skill } from '../../types/analysis';
 
 interface Props {
   skills: Skill[];

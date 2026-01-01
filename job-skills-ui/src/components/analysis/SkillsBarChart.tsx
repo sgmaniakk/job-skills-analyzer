@@ -8,7 +8,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { Skill } from '../../types/analysis';
+import type { Skill } from '../../types/analysis';
 
 interface Props {
   skills: Skill[];

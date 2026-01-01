@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { analyzeJob } from '../api/analysis';
-import { AnalysisResponse, JobInput } from '../types/analysis';
+import type { AnalysisResponse, JobInput } from '../types/analysis';
 
 export const useAnalysis = () => {
   const [loading, setLoading] = useState(false);

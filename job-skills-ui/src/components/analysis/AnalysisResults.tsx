@@ -1,4 +1,4 @@
-import { AnalysisResponse } from '../../types/analysis';
+import type { AnalysisResponse } from '../../types/analysis';
 import { SkillsBarChart } from './SkillsBarChart';
 import { SkillsPieChart } from './SkillsPieChart';
 import { SkillsTable } from './SkillsTable';

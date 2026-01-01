@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { JobInput } from '../../types/analysis';
+import type { JobInput } from '../../types/analysis';
 
 interface JobUploaderProps {
   onAnalyze: (jobData: JobInput) => void;

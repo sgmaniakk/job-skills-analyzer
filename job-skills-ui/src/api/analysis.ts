@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import { AnalysisResponse, JobInput, BatchAnalysisResponse } from '../types/analysis';
+import type { AnalysisResponse, JobInput, BatchAnalysisResponse } from '../types/analysis';
 
 export const analyzeJob = async (jobData: JobInput): Promise<AnalysisResponse> => {
   const response = await apiClient.post<AnalysisResponse>(
