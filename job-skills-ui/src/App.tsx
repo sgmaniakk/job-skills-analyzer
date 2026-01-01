@@ -1,12 +1,17 @@
 import { useState } from 'react';
 import { JobUploader } from './components/upload/JobUploader';
+import { BatchJobUploader } from './components/upload/BatchJobUploader';
 import { AnalysisResults } from './components/analysis/AnalysisResults';
+import { BatchAnalysisResults } from './components/analysis/BatchAnalysisResults';
 import { useAnalysis } from './hooks/useAnalysis';
 import type { JobInput } from './types/analysis';
 
+type AnalysisMode = 'single' | 'batch';
+
 function App() {
-  const { analyze, loading, error, result, reset } = useAnalysis();
+  const { analyze, analyzeBatchJobs, loading, error, result, batchResult, reset } = useAnalysis();
   const [showResults, setShowResults] = useState(false);
+  const [mode, setMode] = useState<AnalysisMode>('single');
 
   const handleAnalyze = async (jobData: JobInput) => {
     try {
@@ -17,9 +22,23 @@ function App() {
     }
   };
 
+  const handleBatchAnalyze = async (jobs: JobInput[]) => {
+    try {
+      await analyzeBatchJobs(jobs);
+      setShowResults(true);
+    } catch (err) {
+      console.error('Batch analysis failed:', err);
+    }
+  };
+
   const handleReset = () => {
     reset();
     setShowResults(false);
+  };
+
+  const handleModeChange = (newMode: AnalysisMode) => {
+    setMode(newMode);
+    handleReset();
   };
 
   return (
@@ -47,6 +66,34 @@ function App() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        {/* Mode Toggle */}
+        {!showResults && (
+          <div className="flex justify-center mb-6">
+            <div className="bg-white rounded-lg shadow-md p-1 inline-flex">
+              <button
+                onClick={() => handleModeChange('single')}
+                className={`px-6 py-2 rounded-md font-medium transition-colors ${
+                  mode === 'single'
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Single Job
+              </button>
+              <button
+                onClick={() => handleModeChange('batch')}
+                className={`px-6 py-2 rounded-md font-medium transition-colors ${
+                  mode === 'batch'
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Multiple Jobs
+              </button>
+            </div>
+          </div>
+        )}
+
         {error && (
           <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
             <p className="font-medium">Error</p>
@@ -55,9 +102,15 @@ function App() {
         )}
 
         {!showResults ? (
-          <JobUploader onAnalyze={handleAnalyze} loading={loading} />
+          mode === 'single' ? (
+            <JobUploader onAnalyze={handleAnalyze} loading={loading} />
+          ) : (
+            <BatchJobUploader onAnalyzeBatch={handleBatchAnalyze} loading={loading} />
+          )
         ) : result ? (
           <AnalysisResults analysis={result} onReset={handleReset} />
+        ) : batchResult ? (
+          <BatchAnalysisResults result={batchResult} onReset={handleReset} />
         ) : null}
       </main>
 
