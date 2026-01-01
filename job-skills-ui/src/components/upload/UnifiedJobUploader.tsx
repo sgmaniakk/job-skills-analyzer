@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { fetchJobFromUrl } from '../../api/analysis';
 import type { JobInput } from '../../types/analysis';
 
 interface UnifiedJobUploaderProps {
@@ -10,17 +11,20 @@ interface JobEntry {
   id: string;
   title: string;
   jobDescription: string;
+  url: string;
+  fetchingUrl: boolean;
+  fetchError: string;
 }
 
 export const UnifiedJobUploader = ({ onAnalyze, loading }: UnifiedJobUploaderProps) => {
   const [jobs, setJobs] = useState<JobEntry[]>([
-    { id: '1', title: '', jobDescription: '' },
+    { id: '1', title: '', jobDescription: '', url: '', fetchingUrl: false, fetchError: '' },
   ]);
   const [error, setError] = useState('');
 
   const addJob = () => {
     const newId = (Math.max(...jobs.map(j => parseInt(j.id))) + 1).toString();
-    setJobs([...jobs, { id: newId, title: '', jobDescription: '' }]);
+    setJobs([...jobs, { id: newId, title: '', jobDescription: '', url: '', fetchingUrl: false, fetchError: '' }]);
   };
 
   const removeJob = (id: string) => {
@@ -29,10 +33,47 @@ export const UnifiedJobUploader = ({ onAnalyze, loading }: UnifiedJobUploaderPro
     }
   };
 
-  const updateJob = (id: string, field: 'title' | 'jobDescription', value: string) => {
+  const updateJob = (id: string, field: 'title' | 'jobDescription' | 'url', value: string) => {
     setJobs(jobs.map(job =>
-      job.id === id ? { ...job, [field]: value } : job
+      job.id === id ? { ...job, [field]: value, fetchError: '' } : job
     ));
+  };
+
+  const handleFetchFromUrl = async (id: string) => {
+    const job = jobs.find(j => j.id === id);
+    if (!job || !job.url.trim()) return;
+
+    // Update to loading state
+    setJobs(jobs.map(j =>
+      j.id === id ? { ...j, fetchingUrl: true, fetchError: '' } : j
+    ));
+
+    try {
+      const result = await fetchJobFromUrl(job.url.trim());
+
+      // Update with fetched data
+      setJobs(jobs.map(j =>
+        j.id === id ? {
+          ...j,
+          title: result.title,
+          jobDescription: result.description,
+          fetchingUrl: false,
+          fetchError: ''
+        } : j
+      ));
+    } catch (err) {
+      const errorMessage = err instanceof Error && 'response' in err && err.response
+        ? (err.response as any).data?.detail || 'Failed to fetch job from URL'
+        : 'Failed to fetch job from URL. Please check the URL and try again.';
+
+      setJobs(jobs.map(j =>
+        j.id === id ? {
+          ...j,
+          fetchingUrl: false,
+          fetchError: errorMessage
+        } : j
+      ));
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -63,7 +104,7 @@ export const UnifiedJobUploader = ({ onAnalyze, loading }: UnifiedJobUploaderPro
 
   const handleClear = () => {
     setJobs([
-      { id: '1', title: '', jobDescription: '' },
+      { id: '1', title: '', jobDescription: '', url: '', fetchingUrl: false, fetchError: '' },
     ]);
     setError('');
   };
@@ -103,6 +144,63 @@ export const UnifiedJobUploader = ({ onAnalyze, loading }: UnifiedJobUploaderPro
               </div>
 
               <div className="space-y-3">
+                {/* URL Input with Fetch Button */}
+                <div>
+                  <label
+                    htmlFor={`url-${job.id}`}
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Job URL (Optional)
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="url"
+                      id={`url-${job.id}`}
+                      value={job.url}
+                      onChange={(e) => updateJob(job.id, 'url', e.target.value)}
+                      placeholder="https://job-boards.greenhouse.io/..."
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                      disabled={loading || job.fetchingUrl}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleFetchFromUrl(job.id)}
+                      disabled={loading || job.fetchingUrl || !job.url.trim()}
+                      className="px-4 py-2 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
+                    >
+                      {job.fetchingUrl ? (
+                        <span className="flex items-center gap-1">
+                          <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                              fill="none"
+                            />
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            />
+                          </svg>
+                          Fetching...
+                        </span>
+                      ) : (
+                        'Fetch'
+                      )}
+                    </button>
+                  </div>
+                  {job.fetchError && (
+                    <p className="text-xs text-red-600 mt-1">{job.fetchError}</p>
+                  )}
+                  <p className="text-xs text-gray-500 mt-1">
+                    Supports Greenhouse, Lever, and other job boards
+                  </p>
+                </div>
+
                 {/* Job Title */}
                 <div>
                   <label
@@ -118,7 +216,7 @@ export const UnifiedJobUploader = ({ onAnalyze, loading }: UnifiedJobUploaderPro
                     onChange={(e) => updateJob(job.id, 'title', e.target.value)}
                     placeholder="e.g., Senior Full Stack Developer"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                    disabled={loading}
+                    disabled={loading || job.fetchingUrl}
                   />
                 </div>
 
@@ -134,10 +232,10 @@ export const UnifiedJobUploader = ({ onAnalyze, loading }: UnifiedJobUploaderPro
                     id={`description-${job.id}`}
                     value={job.jobDescription}
                     onChange={(e) => updateJob(job.id, 'jobDescription', e.target.value)}
-                    placeholder="Paste the full job description here..."
+                    placeholder="Paste the full job description here... or fetch from a URL above"
                     rows={jobs.length === 1 ? 12 : 8}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm"
-                    disabled={loading}
+                    disabled={loading || job.fetchingUrl}
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     {job.jobDescription.length} characters (minimum 50 required)

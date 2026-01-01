@@ -37,3 +37,13 @@ export interface BatchAnalysisResponse {
   top_skills: AggregatedSkill[];
   category_breakdown: Record<string, number>;
 }
+
+export interface FetchJobRequest {
+  url: string;
+}
+
+export interface FetchJobResponse {
+  title: string;
+  description: string;
+  url: string;
+}

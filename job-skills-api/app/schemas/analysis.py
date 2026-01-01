@@ -77,3 +77,18 @@ class BatchAnalysisResponse(BaseModel):
     category_breakdown: Dict[str, int] = Field(
         description="Total skills per category across all jobs"
     )
+
+
+class FetchJobRequest(BaseModel):
+    """Schema for fetching job from URL"""
+    url: str = Field(
+        description="URL to the job posting",
+        examples=["https://job-boards.greenhouse.io/company/jobs/12345"]
+    )
+
+
+class FetchJobResponse(BaseModel):
+    """Schema for fetched job response"""
+    title: str = Field(description="Job title extracted from the page")
+    description: str = Field(description="Job description text")
+    url: str = Field(description="Original URL")

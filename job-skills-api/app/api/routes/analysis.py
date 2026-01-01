@@ -12,8 +12,11 @@ from app.schemas.analysis import (
     BatchAnalysisRequest,
     BatchAnalysisResponse,
     Skill,
+    FetchJobRequest,
+    FetchJobResponse,
 )
 from app.services.nlp_service import NLPService
+from app.services.job_fetcher import JobFetcher, JobFetchError
 
 router = APIRouter()
 
@@ -125,4 +128,42 @@ def analyze_batch(request: BatchAnalysisRequest):
         raise HTTPException(
             status_code=500,
             detail=f"Error analyzing batch jobs: {str(e)}"
+        )
+
+
+@router.post("/fetch-job", response_model=FetchJobResponse)
+async def fetch_job_from_url(request: FetchJobRequest):
+    """
+    Fetch job title and description from a job board URL.
+
+    Supports:
+    - Greenhouse.io
+    - Lever.co
+    - LinkedIn (limited)
+    - Generic job boards (best-effort)
+
+    Args:
+        request: URL to the job posting
+
+    Returns:
+        Extracted job title and description
+    """
+    try:
+        result = await JobFetcher.fetch_job(request.url)
+
+        return FetchJobResponse(
+            title=result['title'],
+            description=result['description'],
+            url=request.url
+        )
+
+    except JobFetchError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=str(e)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error fetching job from URL: {str(e)}"
         )
